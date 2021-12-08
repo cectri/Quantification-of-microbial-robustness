@@ -1,0 +1,9 @@
+This folder contains data regarding the growth and the performance of each Saccharomyces cerevisiae strain. Data regarding plate setup for growth and enzymatic assays are also uploaded. 
+The files here uploaded are necessary to better understand and facilitate the use of the scripts found in the scripts/folder.
+
+CENPK7D_1, ETRED_1, PE2_1: green values measured in the growth profiler for 48 h in 96-well plate
+CENPK7D_summary, ETRED_summary, PE2_summary: information regarding final OD, sugars and product concentrations
+CENPK7D_phenotype, ETRED_phenotype, PE2_phenotype: cellular functions calculated with the performance script in each well-growth condition
+plate_legend_ACS: information regarding the growth profiler plate setup
+sugar_initial_concentrtaion: initial concentration of sugars in the growth profiler plate
+summary_dilutions: dilutions of each well for the enzymatic assays
