@@ -29,10 +29,10 @@ library(ggridges)
 library(stats)
 
 #importing performance data for each strain 
-CENPK7D <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/CENPK7D/CENPK7D_phenotype.csv") 
-ETRED <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/ETRED/ETRED_phenotype.csv") 
+CENPK7D <- read_csv("~/Data/CENPK7D/CENPK7D_phenotype.csv") 
+ETRED <- read_csv("~/Data/Ethanol Red/ETRED_phenotype.csv") 
 ETRED[is.na(ETRED)] <- 0 #correcting for NA data 
-PE2 <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/PE2/PE2_phenotype.csv") 
+PE2 <- read_csv("~/Data/PE-2/PE2_phenotype.csv") 
 
 #creating a single table with all the values 
 strain_phenomics_data <- CENPK7D %>% 
