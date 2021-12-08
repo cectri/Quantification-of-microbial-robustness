@@ -19,8 +19,8 @@ Getting started with robustness quantification:
  8. Three main ways to calculate robustness of the functions are reported. We generally advise to use the 1st method (Fano factor) but other methods might be more suitable for other datasets. 
 
 &nbsp;  
---------
-Cecilia Trivellin, *cectri @ chalmers . se*, Industrial Biotechnology Dision, Chalmers University of technology
+
+Cecilia Trivellin, *cectri@chalmers.se*, Industrial Biotechnology Dision, Chalmers University of technology
 Created: 21-12-8
 
 This version tested with R Version: 1.4.1717© 2009-2021 RStudio, PBC
