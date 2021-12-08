@@ -1,6 +1,5 @@
 # Quantification of Microbial Robusntess
---------
-## R Toolbox for the quantification of the robusntess of cellular functions starting from a high-throughput setup. 
+##### R Toolbox for the quantification of the robusntess of cellular functions starting from a high-throughput setup. 
 The scripts are available in the "scripts" folder and can be used with the data available in the "data" folder.
 --------
 
