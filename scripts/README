@@ -1,1 +1,5 @@
+The two scripts here uploaded are needed to calculate microbial robusntess in a high throughput setup. 
 
+Performance: This scripts takes as input the growth of a microorganism from a growth profiler plate and calculates the maximum specific growth rate and the lag phase. 
+It also calculates biomass and product yields from concentrations measured with enzymatic assays. 
+Robustness quantification: The purpose of this script is to quantify the robustness of cellular functions. Here, performance and robustness are also compared. 
