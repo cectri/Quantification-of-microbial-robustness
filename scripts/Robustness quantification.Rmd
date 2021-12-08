@@ -1,0 +1,406 @@
+---
+title: "Robustness quantification"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo= TRUE, warning = FALSE, message = FALSE) 
+```
+
+## Cecilia Trivellin  
+### Industrial Biotechnology Division, Chalmers University of Technology 2021
+
+## Aim of the script
+The following script aim to calculate robustness of cellular functions of three different strains. Cellular functions correspond to: maximum specific growth rate, cell dry weight, biomass and ethanol yield and lag phase.
+
+Information regarding methodology and materials are reported here:
+[insert link bioarchives]
+
+## Loading and tidying data
+
+```{r, results='hide'}
+#loading libraries
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(ggsci)
+library(RColorBrewer) 
+library(ggridges)
+library(stats)
+
+#importing performance data for each strain 
+CENPK7D <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/CENPK7D/CENPK7D_phenotype.csv") 
+ETRED <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/ETRED/ETRED_phenotype.csv") 
+ETRED[is.na(ETRED)] <- 0 #correcting for NA data 
+PE2 <- read_csv("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/PE2/PE2_phenotype.csv") 
+
+#creating a single table with all the values 
+strain_phenomics_data <- CENPK7D %>% 
+  add_row(ETRED) %>%
+  add_row(PE2) %>%
+  rename(µmax=mumax) #correcting variable names 
+
+```
+
+## Studying ouliers 
+
+```{r, results='hide'}
+#study on outliers (example with CDW), visualization with boxplot
+out_CDW <-boxplot.stats(strain_phenomics_data$CDW)$out
+boxplot(strain_phenomics_data$CDW,
+        ylab = "CDW")
+mtext(paste("Outliers: ", paste(out_CDW, collapse = ", ")))
+
+# checking the outliers within certain strains and phenotype with quantile method. Comparing the outlier values with the mean.
+#cell dry weight 
+CDW_out <- which(strain_phenomics_data$CDW < quantile(strain_phenomics_data$CDW, 0.001) | strain_phenomics_data$CDW > quantile(strain_phenomics_data$CDW, 0.999))
+strain_phenomics_data[CDW_out,]
+mean(strain_phenomics_data$CDW)
+# maximum specific growth rate
+mumax_out <- which(strain_phenomics_data$µmax < quantile(strain_phenomics_data$µmax, 0.001) | strain_phenomics_data$µmax > quantile(strain_phenomics_data$µmax, 0.999))
+strain_phenomics_data[mumax_out,]
+mean(strain_phenomics_data$µmax)
+# lag phase
+lag_out <- which(strain_phenomics_data$lag < quantile(strain_phenomics_data$lag, 0.001) | strain_phenomics_data$lag > quantile(strain_phenomics_data$lag, 0.999))
+strain_phenomics_data[lag_out,]
+mean(strain_phenomics_data$lag)
+# ethanol yield
+Yp_out <- which(strain_phenomics_data$Yp < quantile(strain_phenomics_data$Yp, 0.001, na.rm = TRUE) | strain_phenomics_data$Yp > quantile(strain_phenomics_data$Yp, 0.999, na.rm = TRUE))
+strain_phenomics_data[Yp_out,]
+mean(strain_phenomics_data$Yp)
+#biomass yield
+Yx_out <- which(strain_phenomics_data$Yx < quantile(strain_phenomics_data$Yx, 0.001) | strain_phenomics_data$Yx > quantile(strain_phenomics_data$Yx, 0.999))
+strain_phenomics_data[Yx_out,]
+mean(strain_phenomics_data$Yx)
+
+#correcting lag phase 0 values with NAs
+strain_phenomics_data$lag[strain_phenomics_data$lag == 0] <- NA
+```
+
+## Analysing the strain performance 
+
+```{r, results='hide'}
+#Plotting the summary statistics of the variables 
+phenotype_reshaped <- gather(strain_phenomics_data, key="variable", value="value", c("µmax", "lag", "Yx", "Yp", "CDW"))
+
+ggplot(phenotype_reshaped, aes(x=strain, y=value, fill=strain)) +
+  geom_boxplot()+
+  facet_wrap(~variable,  nrow=5, strip.position = "left", scales ="free_y") +
+  scale_fill_manual(values=c("#00AFBB", "#E7B800", "#FC4E07"))+
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+#plotting variable distribution across the conditions
+theme_set(theme_ridges())
+
+ggplot(phenotype_reshaped, aes(x = value, y = strain)) +
+  geom_density_ridges(aes(fill = strain), jittered_points = TRUE, position = position_points_jitter(height = 0),
+                      point_shape = '|', point_size = 3, 
+                      point_alpha = 1, alpha = 0.7) +
+  scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )+
+  facet_wrap(~variable,  ncol=1, nrow = 5, strip.position = "left", scales = "free_x") 
+
+#plotting phenotype across conditions
+phenotype.means <- aggregate(phenotype_reshaped,
+                             by = list(phenotype_reshaped$variable, phenotype_reshaped$strain),
+                             FUN = mean) %>%
+  select(-variable,-strain) %>%
+  rename(variable=Group.1)%>%
+  rename(strain=Group.2)
+
+ggdotchart(phenotype_reshaped, x = "condition", y = "value",
+           color = "group",                                # Color by groups
+           palette = c("#00AFBB","#3581d8","#f2c85b", "#fba465", "#FC4E07", "grey"), # Custom color palette
+           add = "segments",                             # Add segments from y = 0 to dots
+           add.params = list(color = "lightgray", size = 2), # Change segment color and size
+           group = "group",                                # Order by groups
+           dot.size = 6,                                 # Large dot size
+           ggtheme = theme_light()                        # ggplot2 theme
+)+
+  geom_hline(yintercept = 0, linetype = 2, color = "lightgray") +
+  facet_grid(vars(variable), vars(strain), scales = "free_y")+
+  geom_hline(data = phenotype.means, aes(yintercept = value),
+             linetype = 2, size=0.9)+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+
+#plotting the control condition and the relative performance values as similar boxplot chart
+ggplot(phenotype_reshaped, aes(x=strain, y=value))+
+  geom_violin(alpha=0.5, color="gray")+
+  geom_jitter(alpha=0.8, aes(color=group),
+              position = position_jitter(width = 0.1))+
+  scale_color_manual(values=c("#00AFBB","#3581d8","#f2c85b", "#fba465", "#FC4E07", "grey"))+
+  facet_wrap(vars(variable), scales = "free_y") +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )+
+  stat_summary(fun = "mean",
+               geom = "crossbar", 
+               width = 0.5,
+               linetype=2,
+               colour = "black")+
+  geom_signif(
+    comparisons = list(c("ETRED", "CENPK7D"),c("PE2","ETRED"), c("CENPK7D", "PE2")),
+    test="wilcox.test",
+    map_signif_level = TRUE,
+    textsize=5
+  )
+```
+
+## Visualization of the normalized mean phenotype with a heatmap
+
+```{r, results='hide'}
+#function to normalize the data between 0 and 1 
+normalize01 <- function(x){
+  (x-min(x))/(max(x)-min(x))
+}
+normalize <- function(data){
+  normalized_robustness <- data[,c(1:9)] %>%
+    mutate(CDW_n=normalize01(CDW)) %>%
+    mutate(µmax_n=normalize01(mumax)) %>%
+    mutate(lag_n=normalize01(lag)) %>%
+    mutate(Yx_n=normalize01(Yx)) %>%
+    mutate(Yp_n = ifelse(is.na(Yp), 0, Yp)) %>%
+    mutate(Yp_n=normalize01(Yp))
+}
+
+#applying normalization on the different strains 
+norm_CENPK7D <- normalize(CENPK7D)
+norm_ETRED <- normalize(ETRED)
+norm_PE2 <- normalize(PE2)
+#creating one table with all the values
+norm01 <- norm_CENPK7D %>% 
+  add_row(norm_ETRED) %>%
+  add_row(norm_PE2) 
+
+norm_reshaped <- gather(norm01, key="variable", value="value", c("µmax_n", "lag_n", "Yx_n", "Yp_n", "CDW_n"))
+
+#visualization of the normalized phenotype through heatmap
+ggplot(data = norm_reshaped,
+       mapping = aes(x = strain,
+                     y = condition,
+                     fill = (value))) +
+  geom_tile() +
+  xlab(label = "Sample") +
+  facet_grid( ~ variable) +
+  scale_fill_distiller(palette = "RdYlBu")+
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+
+```
+
+## Quantification of Robustness with the formula: R=-F=-sd^2/mean
+
+```{r, results='hide'}
+#calculating the mean and the standard deviation for each variable, strain and replicate 
+R_m_sd <- strain_phenomics_data %>%
+  gather(key="variable", value="value", c("µmax", "lag", "Yx", "Yp", "CDW")) %>%
+  group_by(strain, variable, replicate) %>%
+  mutate(mean=mean(value,  na.rm=TRUE)) %>%
+  mutate(stdev=sd(value,  na.rm=TRUE)) %>%
+  filter(condition == "Glu_65" ) %>%
+  select(-c(condition, group, strain_type, value))
+
+#calculating R=-F for each replicate. Then, calculating the mean and the standard deviation for each strain and variable
+#Each R is normalized for the mean of the values for each variable 
+R_Fano <- R_m_sd %>%
+  group_by(variable)%>%
+  mutate(mean_v=mean(mean, na.rm=TRUE)) %>%
+  mutate(robustness=-stdev^2/mean, na.rm=TRUE)%>%
+  mutate(robustness_n=robustness/mean_v, na.rm=TRUE) %>%
+  ungroup()%>%
+  group_by(strain, variable) %>%
+  mutate(mean_R=mean(robustness_n, na.rm=TRUE)) %>%
+  mutate(sem_R=sd(robustness_n)/sqrt(3),na.rm=TRUE) 
+
+# Calculating significant difference between the strains 
+p_µmax <- R_Fano %>% 
+  filter(variable == "µmax") 
+pairwise.t.test(p_µmax$robustness_n, p_µmax$strain, p.adjust.method = "bonferroni")
+
+p_CDW <- R_Fano %>% 
+  filter(variable == "CDW") 
+pairwise.t.test(p_CDW$robustness_n, p_CDW$strain)
+
+p_lag <- R_Fano %>% 
+  filter(variable == "lag") 
+pairwise.t.test(p_lag$robustness_n, p_lag$strain, na.rm=TRUE)
+
+p_Yx <- R_Fano %>% 
+  filter(variable == "Yx") 
+pairwise.t.test(p_Yx$robustness_n, p_Yx$strain)
+
+p_Yp <- R_Fano %>% 
+  filter(variable == "Yp") 
+pairwise.t.test(p_Yp$robustness_n, p_Yp$strain)
+
+#plotting Robustness
+R_Fano <- R_Fano %>%
+  filter(replicate==1) 
+
+ggplot(R_Fano, fill=strain) +
+  geom_bar(aes(x=strain, y=mean_R, fill=strain), stat="identity") +
+  geom_errorbar(aes(x=strain, ymin=mean_R-sem_R, ymax=mean_R+sem_R), width=0.05, colour="red", alpha=0.9, size=1.3)+
+  facet_grid(col = vars(variable), scales = "free_y") +
+  scale_fill_manual(values = c('#bdbdbd', '#636363', '#303030')) +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+
+```
+
+
+## Quantification of robusntess as R = 1-coefficient of variation = 1-sd/mean
+
+```{r, results='hide'}
+#calculating R=-F for each replicate. Then, calculating the mean and the standard deviation for each strain and variable
+R_CV <- R_m_sd %>%
+  dplyr::mutate(robustness=1 - stdev/mean) %>%
+  group_by(strain, variable) %>%
+  mutate(mean_RCV=mean(robustness, na.rm=TRUE)) %>%
+  mutate(sd_RCV=sd(robustness, na.rm=TRUE)) %>%
+  filter(replicate==1)
+
+#plotting Robustness
+ggplot(R_CV, fill=strain) +
+  geom_bar(aes(x=strain, y=mean_RCV, fill=strain), stat="identity") +
+  geom_errorbar(aes(x=strain, ymin=mean_RCV-sd_RCV, ymax=mean_RCV+sd_RCV), width=0.05, colour="red", alpha=0.9, size=1.3)+
+  facet_grid(rows = vars(variable), scales = "free_y") +
+  scale_fill_manual(values = c('#bdbdbd', '#636363', '#303030')) +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+```
+
+## Robusntess quantification with Kitano's formula 
+
+```{r, results='hide'}
+#importing the data
+CENPK7D_K <- CENPK7D %>%
+  mutate(D_CDW = (CDW / mean(CDW[condition == "Glu_20"]))) %>%
+  mutate(D_Yx = (Yx / mean(Yx[condition == "Glu_20"]))) %>%
+  mutate(D_µmax = (mumax / mean(mumax[condition == "Glu_20"]))) %>%
+  mutate(D_Yp = (Yp / mean(Yp[condition == "Glu_20"]))) %>%
+  mutate(D_lag = (lag / mean(lag[condition == "Glu_20"])))
+ETRED_K <- ETRED %>%
+  mutate(D_CDW = (CDW / mean(CDW[condition == "Glu_20"]))) %>%
+  mutate(D_Yx = (Yx / mean(Yx[condition == "Glu_20"]))) %>%
+  mutate(D_µmax = (mumax / mean(mumax[condition == "Glu_20"]))) %>%
+  mutate(D_Yp = (Yp / mean(Yp[condition == "Glu_20"]))) %>%
+  mutate(D_lag = (lag / mean(lag[condition == "Glu_20"])))
+PE2_K <- PE2 %>%
+  mutate(D_CDW = (CDW / mean(CDW[condition == "Glu_20"]))) %>%
+  mutate(D_Yx = (Yx / mean(Yx[condition == "Glu_20"]))) %>%
+  mutate(D_µmax = (mumax / mean(mumax[condition == "Glu_20"]))) %>%
+  mutate(D_Yp = (Yp / mean(Yp[condition == "Glu_20"]))) %>%
+  mutate(D_lag = (lag / mean(lag[condition == "Glu_20"])))
+
+#creating a single table
+strain_phenomics_data_K <- CENPK7D_K %>%
+  add_row(ETRED_K) %>%
+  add_row(PE2_K) %>%
+  rename(µmax=mumax)
+#calculating the sum of the ratios for each strain, replicate and variable 
+#Then, calculating the mean and the standard deviation of each of the sum values
+R_K <- strain_phenomics_data_K %>%
+  gather(key="variable", value="value", c("D_µmax", "D_lag", "D_Yx", "D_Yp", "D_CDW")) %>%
+  group_by(strain, variable, replicate) %>%
+  mutate(sum=sum(value))%>%
+  filter(condition == "Glu_65" ) %>%
+  select(-c(condition, group, strain_type, value, CDW,Yx,Yp,µmax,lag))%>%
+  group_by(strain, variable) %>%
+  mutate(mean_RK=mean(sum)) %>%
+  mutate(sd_RK=sd(sum)) %>%
+  filter(replicate==1)
+
+#plotting 
+ggplot(R_K, fill=strain) +
+  geom_bar(aes(x=strain, y=mean_RK, fill=strain), stat="identity") +
+  geom_errorbar(aes(x=strain, ymin=mean_RK-sd_RK, ymax=mean_RK+sd_RK), width=0.05, colour="red", alpha=0.9, size=1.3)+
+  facet_grid(rows = vars(variable), scales = "free_y") +
+  scale_fill_manual(values = c('#bdbdbd', '#636363', '#303030')) +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+
+#correcting the calculations above with the mean instead of the sum
+R_Km <- strain_phenomics_data_K %>%
+  gather(key="variable", value="value", c("D_µmax", "D_lag", "D_Yx", "D_Yp", "D_CDW")) %>%
+  group_by(strain, variable, replicate) %>%
+  mutate(meanK=mean(value))%>%
+  filter(condition == "Glu_65" ) %>%
+  select(-c(condition, group, strain_type, value, CDW,Yx,Yp,µmax,lag))%>%
+  group_by(strain, variable) %>%
+  mutate(mean_RKm=mean(meanK)) %>%
+  mutate(sd_RKm=sd(meanK)) %>%
+  filter(replicate==1)
+
+#plotting 
+ggplot(R_Km, fill=strain) +
+  geom_bar(aes(x=strain, y=mean_RKm, fill=strain), stat="identity") +
+  geom_errorbar(aes(x=strain, ymin=mean_RKm-sd_RKm, ymax=mean_RKm+sd_RKm), width=0.05, colour="red", alpha=0.9, size=1.3)+
+  facet_grid(rows = vars(variable), scales = "free_y") +
+  scale_fill_manual(values = c('#bdbdbd', '#636363', '#303030')) +
+  theme_light()+
+  theme(
+    text = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 10, face = "bold"),
+    strip.background = element_rect(fill = "grey"),
+    strip.text.x = element_text(size = 10, color = "black", face = "bold"),
+    strip.text.y = element_text(size = 10, color = "black", face = "bold")
+  )
+```
+
