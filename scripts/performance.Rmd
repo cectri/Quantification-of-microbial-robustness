@@ -36,11 +36,11 @@ library(statmod)
 
 #loading data
 #summary contains information on the layout of the growth_profiler plate
-summary <- readxl::read_excel("~/Box/PhD/Experimental_Data/R/ACS_scripts/plate_legend_ACS.xlsx")
+summary <- readxl::read_excel("~/Data/plate_legend_ACS.xlsx")
 #data contains the green values "GV" measured in the growth profiler. Each column corresponds to a well, except the 1st column which is the time in minutes.
 #the time column is converted in hours, the last 9 column are removed because they are empty
 #data is reorganized to have only 3 columns (well, values, time(h))
-data <- readxl::read_excel("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/CENPK7D/CENPK7D_1.xlsx", sheet = "GV") %>%
+data <- readxl::read_excel("~/Data/CEN.PK113-7D/CENPK7D_1.xlsx", sheet = "GV") %>%
   mutate(timeh = `time`/60) %>%
   select(-`time`, -`H4`, -`H5`,-`H6`,-`H7`, -`H8`, -`H9`,-`H10`,-`H11`, -`H12`) %>%
   gather("well", "value", -timeh) 
@@ -175,9 +175,9 @@ The data imported are measured with enzymatic assays (sugars and ethanol). Yield
 
 ```{r}
 #load data
-strain_summary <- readxl::read_excel("~/Box/PhD/Experimental_Data/Robustness in 96-well plate/ACS_data/CENPK7D/CENPK7D_summary.xlsx")
-summary_dilutions <- readxl::read_excel("~/Box/PhD/Experimental_Data/R/ACS_scripts/summary_dilutions.xlsx")
-sugar_initial_concentration <- readxl::read_excel("~/Box/PhD/Experimental_Data/R/ACS_scripts/sugar_initial_concentration.xlsx")
+strain_summary <- readxl::read_excel("~/Data/CEN.PK113-7D/CENPK7D_summary.xlsx")
+summary_dilutions <- readxl::read_excel("~/Data/summary_dilutions.xlsx")
+sugar_initial_concentration <- readxl::read_excel("~/Data/sugar_initial_concentration.xlsx")
 ```
 
 ## Calculation of final biomass dry weight
