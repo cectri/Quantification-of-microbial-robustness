@@ -250,7 +250,7 @@ R_Fano <- R_m_sd %>%
 # Calculating significant difference between the strains 
 p_µmax <- R_Fano %>% 
   filter(variable == "µmax") 
-pairwise.t.test(p_µmax$robustness_n, p_µmax$strain, p.adjust.method = "bonferroni")
+pairwise.t.test(p_µmax$robustness_n, p_µmax$strain)
 
 p_CDW <- R_Fano %>% 
   filter(variable == "CDW") 
