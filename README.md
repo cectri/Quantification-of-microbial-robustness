@@ -19,9 +19,10 @@ Getting started with robustness quantification:
 &nbsp;  
 
 Cecilia Trivellin, *cectri@chalmers.se*, Industrial Biotechnology Dision, Chalmers University of technology
+
 Created: 21-12-8
 
-This version tested with R Version: 1.4.1717© 2009-2021 RStudio, PBC
+The scripts were tested with R Version: 1.4.1717© 2009-2021 RStudio, PBC
 Mac OS X 11.6.1 
 &nbsp;  
 
