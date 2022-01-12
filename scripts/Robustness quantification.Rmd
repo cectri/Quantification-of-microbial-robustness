@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo= TRUE, warning = FALSE, message = FALSE)
 The following script aim to calculate robustness of cellular functions of three different strains. Cellular functions correspond to: maximum specific growth rate, cell dry weight, biomass and ethanol yield and lag phase.
 
 Information regarding methodology and materials are reported here:
-[insert link bioarchives]
+https://www.biorxiv.org/content/10.1101/2021.12.09.471918v1
 
 ## Loading and tidying data
 
