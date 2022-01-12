@@ -17,7 +17,7 @@ Yields are calculated from enzymatic essays measuring glucose, ethanol and other
 Each plate analyzed correspond to a specific strain. In the plate various conditions of growth are present.
 
 Information regarding methodology and materials are reported here:
-[insert link bioarchives]
+https://www.biorxiv.org/content/10.1101/2021.12.09.471918v1
 
 
 ## Data implementation
