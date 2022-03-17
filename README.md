@@ -18,7 +18,7 @@ Getting started with robustness quantification:
 
 &nbsp;  
 
-Cecilia Trivellin, *cectri@chalmers.se*, Industrial Biotechnology Dision, Chalmers University of technology
+Cecilia Trivellin, *cectri@chalmers.se*, Industrial Biotechnology Division, Chalmers University of technology
 
 Created: 21-12-8
 
