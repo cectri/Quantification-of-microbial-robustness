@@ -11,9 +11,9 @@ Getting started with robustness quantification:
  3. Write a legend for the 96-well plate in the same format as "plate_legend_ACS.xlsx" 
  4. Run the first part of the script. 
  5. The second part of the script is needed for yields calculation in case of enzymatic assays. In that case check the format of "CENPK7D_summary.xlsx", "summary_dilutions.xlsx" and "sugar_initial_concentrations.xlsx"
- 6. Once the cellualar functions are evaluated, they can be saved in a .csv file like here "CENPK7D_phenotype.csv" 
+ 6. Once the cellular functions are evaluated, they can be saved in a .csv file like here "CENPK7D_phenotype.csv" 
 *NOTE* Cellular functions can be growth variables and yields but can also be fluorescence, gene expressions values etc.
- 7. Caclulate the functions for all the strains and upload the .csv files in the robustness_quantification script. 
+ 7. Calculate the functions for all the strains and upload the .csv files in the robustness_quantification script. 
  8. Three main ways to calculate robustness of the functions are reported. We generally advise to use the 1st method (Fano factor) but other methods might be more suitable for other datasets. 
 
 &nbsp;  
